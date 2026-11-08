@@ -1,0 +1,31 @@
+name: Haste pages
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:            # Rebuild by hand, e.g. after committing an older PR's
+                                # <PR number>/ to haste-results.
+  pull_request_target:          # Remind job only. Not pull_request: fork PRs cannot comment.
+    types: [opened]
+jobs:
+  pages:                        # Stores the merged PR's results and deploys the chart.
+    if: github.event_name != 'pull_request_target'
+    runs-on: ubuntu-latest
+    # contents: write pushes to haste-results; the others deploy Pages.
+    permissions: { contents: write, pages: write, id-token: write }
+    environment: { name: github-pages, url: "${{ steps.deploy.outputs.page_url }}" }
+    concurrency: { group: pages }
+    steps:
+      - uses: Pavel-Durov/haste-pages-fork/action/build@add-haste-pages-action
+        with:
+          haste-dir: haste      # Where PRs commit data.toml and extra.toml.
+      - id: deploy
+        uses: actions/deploy-pages@v4
+  remind:                       # Optional: comments on new PRs that do not change
+                                # <haste-dir>/data.toml.
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    permissions: { pull-requests: write }
+    steps:
+      - uses: Pavel-Durov/haste-pages-fork/action/remind@add-haste-pages-action
+        with:
+          haste-dir: haste

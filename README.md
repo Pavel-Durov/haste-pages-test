@@ -1,0 +1,1 @@
+# haste-pages-test

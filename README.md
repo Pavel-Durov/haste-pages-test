@@ -1,1 +1,3 @@
 # haste-pages-test
+
+test
